@@ -7,8 +7,24 @@ function Home() {
     const [produtos, setProdutos] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [pesquisa, setPesquisa] = useState("");
+    const [mouse, setMouse] = useState({ x: 50, y: 50 });
 
     const API_KEY = "pro_9198188f7fe0f06cdc6ffaec77b61ac26652a459595f16d76435cbeab60c551e";
+
+    useEffect(() => {
+        function moverMouse(e) {
+            setMouse({
+                x: (e.clientX / window.innerWidth) * 100,
+                y: (e.clientY / window.innerHeight) * 100
+            });
+        }
+
+        window.addEventListener("mousemove", moverMouse);
+
+        return () => {
+            window.removeEventListener("mousemove", moverMouse);
+        };
+    }, []);
 
     async function buscarProdutos() {
         try {
@@ -25,19 +41,13 @@ function Home() {
 
             const dados = await resposta.json();
 
-            console.log("Resposta da API:", dados);
-
             if (!resposta.ok) {
-                console.log(dados);
-                alert("Erro ao buscar produtos");
                 return;
             }
 
             setProdutos(dados.data || dados.records || []);
-
         } catch (erro) {
             console.log(erro);
-            alert("Erro ao conectar com a API");
         } finally {
             setCarregando(false);
         }
@@ -56,9 +66,51 @@ function Home() {
     });
 
     return (
-        <div className="min-h-screen bg-gray-100 p-6">
+        <div className="min-h-screen bg-slate-50 p-6 relative overflow-hidden">
 
-            <div className="max-w-5xl mx-auto">
+            <div
+                className="fixed inset-0 pointer-events-none z-0 opacity-60"
+                style={{
+                    backgroundImage: `
+                        linear-gradient(
+                            90deg,
+                            rgba(59,130,246,0.12) 1px,
+                            transparent 1px
+                        ),
+                        linear-gradient(
+                            0deg,
+                            rgba(59,130,246,0.12) 1px,
+                            transparent 1px
+                        )
+                    `,
+                    backgroundSize: "55px 55px",
+                    maskImage: `radial-gradient(
+                        circle 500px at ${mouse.x}% ${mouse.y}%,
+                        black,
+                        transparent
+                    )`,
+                    WebkitMaskImage: `radial-gradient(
+                        circle 500px at ${mouse.x}% ${mouse.y}%,
+                        black,
+                        transparent
+                    )`,
+                    transition: "mask-image 0.15s ease"
+                }}
+            />
+
+            <div
+                className="fixed pointer-events-none z-0 w-96 h-96 rounded-full"
+                style={{
+                    left: `${mouse.x}%`,
+                    top: `${mouse.y}%`,
+                    transform: "translate(-50%, -50%)",
+                    background:
+                        "radial-gradient(circle, rgba(59,130,246,0.10), transparent 70%)",
+                    transition: "left 0.12s ease-out, top 0.12s ease-out"
+                }}
+            />
+
+            <div className="relative z-10 max-w-5xl mx-auto">
 
                 <div className="flex justify-between items-center mb-8 animate-[fadeIn_0.6s_ease-out]">
 
@@ -82,6 +134,7 @@ function Home() {
                 </div>
 
                 <div className="mb-6 animate-[fadeIn_0.8s_ease-out]">
+
                     <input
                         type="text"
                         placeholder="Pesquisar produto..."
@@ -89,6 +142,7 @@ function Home() {
                         onChange={(e) => setPesquisa(e.target.value)}
                         className="w-full bg-white border border-gray-200 rounded-xl px-5 py-4 outline-none shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                     />
+
                 </div>
 
                 {carregando ? (
@@ -121,7 +175,7 @@ function Home() {
                                     style={{
                                         animationDelay: `${index * 100}ms`
                                     }}
-                                    className="bg-white rounded-xl shadow p-6 opacity-0 animate-[cardEntrada_0.5s_ease-out_forwards] hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                                    className="bg-white rounded-xl shadow p-6 opacity-0 animate-[cardEntrada_0.5s_ease-out_forwards] hover:-translate-y-2 hover:shadow-2xl transition-all duration-300"
                                 >
 
                                     <div className="flex justify-between items-start mb-4">
@@ -201,3 +255,4 @@ function Home() {
 }
 
 export default Home;
+
